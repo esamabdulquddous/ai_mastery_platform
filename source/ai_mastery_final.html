@@ -2271,7 +2271,7 @@ async function callClaude(apiKey, systemPrompt) {
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1000,
       system: systemPrompt,
       messages: state.chatHistory.slice(-20).map(m => ({ role: m.role, content: m.content }))
@@ -2308,7 +2308,7 @@ async function callGemini(apiKey, systemPrompt) {
     parts: [{ text: m.content }]
   }));
   const resp = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + apiKey,
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2331,26 +2331,40 @@ function getApiErrorMsg(err, lang) {
   const p   = (err && err.provider) || appSettings.provider || 'claude';
   const cfg = PROVIDERS[p] || PROVIDERS.claude;
   const s   = err && err.status;
+  const msg = (err && err.message) ? String(err.message) : '';
   const link = (url, label) => '<a href="' + url + '" target="_blank" style="color:var(--accent);text-decoration:underline">' + label + ' ↗</a>';
+  const detail = msg ? '<br><small style="color:var(--text3);font-size:11px">' + msg + '</small>' : '';
 
   if (s === 401 || s === 403) {
     return isAr
-      ? 'مفتاح API غير صحيح أو منتهي الصلاحية. تحقق منه على ' + link(cfg.keysUrl, cfg.billingName)
-      : 'Invalid or expired API key. Check it at ' + link(cfg.keysUrl, cfg.billingName);
+      ? 'مفتاح API غير صحيح أو منتهي الصلاحية. تحقق منه على ' + link(cfg.keysUrl, cfg.billingName) + detail
+      : 'Invalid or expired API key. Check it at ' + link(cfg.keysUrl, cfg.billingName) + detail;
   }
   if (s === 429) {
     return isAr
-      ? 'نفد الرصيد أو تجاوزت الحد المسموح به. أضف رصيداً على ' + link(cfg.billingUrl, cfg.billingName)
-      : 'Credits exhausted or rate limit reached. Top up at ' + link(cfg.billingUrl, cfg.billingName);
+      ? 'تجاوزت الحد المسموح به. انتظر دقيقة أو أضف رصيداً على ' + link(cfg.billingUrl, cfg.billingName) + detail
+      : 'Rate limit reached. Wait a minute or top up at ' + link(cfg.billingUrl, cfg.billingName) + detail;
+  }
+  if (s === 404) {
+    return isAr
+      ? 'النموذج غير متاح (404). تحقق من مفتاحك على ' + link(cfg.keysUrl, cfg.billingName) + detail
+      : 'AI model not found (404). Check your key at ' + link(cfg.keysUrl, cfg.billingName) + detail;
+  }
+  if (s === 400) {
+    return isAr
+      ? 'طلب غير صالح (400).' + detail
+      : 'Bad request (400).' + detail;
   }
   if (s === 500 || s === 503) {
     return isAr
-      ? 'الخادم غير متاح مؤقتاً. حاول مرة أخرى بعد لحظات.'
-      : 'The AI service is temporarily unavailable. Please try again in a moment.';
+      ? 'الخادم غير متاح مؤقتاً. حاول مرة أخرى.' + detail
+      : 'The AI service is temporarily unavailable. Try again in a moment.' + detail;
   }
+  // Unknown — show raw status + message so we can diagnose
+  const code = s ? ' (error ' + s + ')' : '';
   return isAr
-    ? 'خطأ في الاتصال بالمساعد الذكي. تحقق من اتصالك بالإنترنت ومفتاح API.'
-    : 'Could not connect to the AI assistant. Check your internet connection and API key.';
+    ? 'خطأ في الاتصال' + code + '.' + detail
+    : 'Connection error' + code + '.' + detail;
 }
 
 async function sendMsg() {
