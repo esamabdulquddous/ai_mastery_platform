@@ -7369,7 +7369,7 @@ async function callGemini(apiKey, systemPrompt) {
     parts: [{ text: m.content }]
   }));
   const resp = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey,
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + apiKey,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -7478,6 +7478,32 @@ window.handleKey = handleKey;
 window.chatReady = chatReady;
 
 
+// submitExercise stub — exercises use the AI chat panel for feedback
+function submitExercise(stepId) {
+  if (!chatReady) {
+    showToast(state.lang === 'ar'
+      ? 'أدخل مفتاح API في لوحة المساعد أولاً'
+      : 'Enter your API key in the assistant panel first');
+    return;
+  }
+  const input = document.getElementById('pi-' + stepId);
+  const attempt = input ? input.value.trim() : '';
+  if (!attempt) {
+    showToast(state.lang === 'ar' ? 'اكتب محاولتك أولاً' : 'Write your attempt first');
+    return;
+  }
+  // Open chat panel if hidden
+  const chatPanel = document.getElementById('chat-panel');
+  if (chatPanel && chatPanel.classList.contains('hidden')) toggleChat();
+  // Send to AI with exercise context
+  const chatInput = document.getElementById('chat-input');
+  if (chatInput) {
+    chatInput.value = (state.lang === 'ar'
+      ? 'هذه محاولتي للتمرين، أرجو تقييمها وإعطائي ملاحظات بنّاءة:\n\n'
+      : 'This is my exercise attempt, please evaluate it and give me constructive feedback:\n\n') + attempt;
+    sendMsg();
+  }
+}
 window.submitExercise = submitExercise;
 </script>
 
