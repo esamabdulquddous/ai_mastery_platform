@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Mastery Course</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Literata:ital,opsz,wght@0,7..72,300;0,7..72,400;0,7..72,500;1,7..72,300;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&family=Noto+Kufi+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   CSS CUSTOM PROPERTIES — Design tokens
+   ============================================================ */
+:root {
+  /* Backgrounds */
+  --bg:  #0D0D0D;
+  --bg2: #141414;
+  --bg3: #1C1C1C;
+  --bg4: #242424;
+
+  /* Borders */
+  --border:  rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+
+  /* Text */
+  --text:  #F0EDE8;
+  --text2: #9B9790;
+  --text3: #5C5A57;
+
+  /* Accent — gold */
+  --accent:     #C8A96E;
+  --accent2:    #8B6F3E;
+  --accent-dim: rgba(200,169,110,0.12);
+  --accent-dim2:rgba(200,169,110,0.06);
+
+  /* Semantic colours */
+  --green:     #4CAF7D;
+  --green-dim: rgba(76,175,125,0.12);
+  --blue:      #5B9BD5;
+  --blue-dim:  rgba(91,155,213,0.12);
+  --red:       #D45B5B;
+
+  /* Phase colours */
+  --phase1: #C8A96E;
+  --phase2: #4CAF7D;
+  --phase3: #5B9BD5;
+  --phase4: #C87E4C;
+  --phase5: #A06EC8;
+
+  /* Layout */
+  --sidebar-w: 260px;
+  --chat-w:    360px;
+  --topbar-h:  52px;
+
+  /* Shape */
+  --radius:    10px;
+  --radius-lg: 16px;
+  --radius-sm: 6px;
+
+  /* Typography */
+  --font-ui:   'Syne', sans-serif;
+  --font-body: 'Literata', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-ar:   'Noto Kufi Arabic', sans-serif;
+}
+
+/* ============================================================
+   LIGHT THEME — overrides all dark tokens when html.light
+   ============================================================ */
+html.light {
+  --bg:          #F7F5F2;
+  --bg2:         #EEECEA;
+  --bg3:         #E5E2DE;
+  --bg4:         #D8D4CF;
+  --border:      rgba(0,0,0,0.08);
+  --border2:     rgba(0,0,0,0.15);
+  --text:        #1A1814;
+  --text2:       #5C5854;
+  --text3:       #9C9890;
+  --accent:      #9B7040;
+  --accent2:     #7A5530;
+  --accent-dim:  rgba(155,112,64,0.15);
+  --accent-dim2: rgba(155,112,64,0.08);
+  --green:       #2E7D52;
+  --green-dim:   rgba(46,125,82,0.12);
+  --blue:        #2E6BA8;
+  --blue-dim:    rgba(46,107,168,0.12);
+  --red:         #C0392B;
+}
+
+/* ============================================================
+   FONT SIZE CLASSES — applied to <body>
+   ============================================================ */
+/* Font scaling via zoom on readable areas — scales regardless of fixed px child values */
+html.font-sm .content-area,
+html.font-sm .chat-messages,
+html.font-sm .chat-input-area  { zoom: 0.875; }
+html.font-lg .content-area,
+html.font-lg .chat-messages,
+html.font-lg .chat-input-area  { zoom: 1.15; }
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Arabic body override */
+body.ar { font-family: var(--font-ar); }
+
+/* RTL support */
+[lang="ar"] { direction: rtl; }
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.fade-up { animation: fadeUp 0.35s ease forwards; }
+
+/* ============================================================
+   APP SHELL — 3-column flex
+   ============================================================ */
+.app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  z-index: 10;
+}
+
+/* — Sidebar header / logo — */
+.sidebar-header {
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+
+.logo-sub {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .03em;
+  line-height: 1.4;
+}
+
+/* — Progress bar — */
+.progress-wrap {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.progress-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-track {
+  height: 3px;
+  background: var(--bg4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  width: 0%;
+}
+
+/* Milestone dots row */
+.milestone-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.milestone-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.milestone-dot.done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.milestone-dot.active {
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 6px rgba(200,169,110,0.5);
+}
+
+/* — Navigation — */
+nav { flex: 1; padding: 8px 0 12px; overflow-y: auto; }
+
+.nav-phase-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px 5px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--text3);
+  cursor: pointer;
+  transition: color 0.15s;
+  user-select: none;
+}
+
+.nav-phase-header:hover { color: var(--text2); }
+
+/* Small coloured phase dot in nav */
+.phase-dot-sm {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nav-step {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 20px 6px 34px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text3);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  position: relative;
+  user-select: none;
+}
+
+.nav-step:hover {
+  background: var(--bg3);
+  color: var(--text2);
+}
+
+.nav-step.active {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.nav-step.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+/* RTL active indicator */
+[dir="rtl"] .nav-step.active::before {
+  left: auto;
+  right: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+.nav-step.completed { color: var(--text2); }
+
+/* Step number badge in sidebar */
+.step-num-sm {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text3);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.nav-step.completed .step-num-sm {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.nav-step.active .step-num-sm {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* — Sidebar footer — language toggle — */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.lang-btn {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  letter-spacing: .04em;
+}
+
+.lang-btn:hover { background: var(--bg3); color: var(--text2); }
+
+.lang-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Settings gear button */
+.settings-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text3);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.settings-btn:hover { background: var(--bg3); color: var(--text); }
+.settings-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* Settings panel — floats above sidebar footer */
+.settings-panel {
+  position: absolute;
+  bottom: 62px;
+  left: 12px;
+  right: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  animation: fadeUp 0.2s ease forwards;
+}
+.settings-panel.open { display: flex; }
+
+.settings-section-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 5px;
+}
+
+.settings-row { display: flex; gap: 6px; }
+
+.settings-opt {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  letter-spacing: .03em;
+}
+.settings-opt:hover { background: var(--bg4); color: var(--text); }
+.settings-opt.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+.reset-btn {
+  width: 100%;
+  padding: 9px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(212,91,91,0.3);
+  background: transparent;
+  color: var(--red);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.reset-btn:hover { background: rgba(212,91,91,0.12); border-color: var(--red); }
+
+/* ============================================================
+   MAIN COLUMN
+   ============================================================ */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* — Topbar — */
+.topbar {
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-sub {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.chat-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chat-toggle-btn:hover { background: var(--bg3); color: var(--text); }
+
+/* Home + Back navigation buttons */
+.nav-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-btn:hover:not(:disabled) { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+.chat-toggle-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* — Content area — */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 40px 48px 60px;
+}
+
+/* Inner max-width container — JS wraps content in this */
+.content-inner {
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   CONTENT COMPONENTS
+   ============================================================ */
+
+/* Phase hero block */
+.phase-hero {
+  margin-bottom: 36px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.phase-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+.phase-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.phase-title-lg {
+  font-family: var(--font-ui);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.phase-desc {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.8;
+  max-width: 600px;
+}
+
+/* Timeline strip */
+.timeline-strip {
+  display: flex;
+  align-items: center;
+  margin-top: 22px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tl-pill {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.tl-pill.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.tl-line-sm {
+  flex: 1;
+  min-width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Card grid */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.concept-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.concept-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+
+.concept-icon {
+  font-size: 20px;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.concept-name {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.concept-desc {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
+/* Tool grid (slightly larger cards) */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.tool-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  transition: border-color 0.2s;
+}
+
+.tool-card:hover { border-color: var(--border2); }
+.tool-card.featured { border-color: rgba(200,169,110,0.3); }
+
+.tool-name {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.tool-category {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text3);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.tool-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* Callout boxes */
+.callout {
+  background: var(--accent-dim2);
+  border: 1px solid rgba(200,169,110,0.18);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 15px 18px;
+  margin: 22px 0;
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+}
+
+[dir="rtl"] .callout {
+  border-left: 1px solid rgba(200,169,110,0.18);
+  border-right: 3px solid var(--accent);
+}
+
+.callout strong { color: var(--accent); font-weight: 500; }
+
+.callout-blue {
+  background: var(--blue-dim);
+  border-color: rgba(91,155,213,0.25);
+  border-left-color: var(--blue);
+}
+
+[dir="rtl"] .callout-blue {
+  border-left-color: rgba(91,155,213,0.25);
+  border-right-color: var(--blue);
+}
+
+.callout-green {
+  background: var(--green-dim);
+  border-color: rgba(76,175,125,0.25);
+  border-left-color: var(--green);
+}
+
+[dir="rtl"] .callout-green {
+  border-left-color: rgba(76,175,125,0.25);
+  border-right-color: var(--green);
+}
+
+/* Comparison table */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 13px;
+}
+
+.comparison-table th {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+[dir="rtl"] .comparison-table th { text-align: right; }
+
+.comparison-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.comparison-table tr:last-child td { border-bottom: none; }
+.comparison-table tbody tr:hover td { background: var(--bg3); }
+.comparison-table .highlight-row td { color: var(--accent); }
+.comparison-table .highlight-row td strong { color: var(--accent); }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.badge-green { background: var(--green-dim);  color: var(--green); }
+.badge-amber { background: var(--accent-dim); color: var(--accent); }
+.badge-blue  { background: var(--blue-dim);   color: var(--blue); }
+
+/* Exercise box */
+.exercise-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 26px;
+  margin: 26px 0;
+}
+
+.exercise-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.exercise-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(200,169,110,0.2);
+}
+
+[dir="rtl"] .exercise-label::after { display: none; }
+[dir="rtl"] .exercise-label::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(200,169,110,0.2);
+}
+
+.exercise-title {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.exercise-desc {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+  margin-bottom: 14px;
+}
+
+.exercise-prompt {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.complete-btn {
+  margin-top: 18px;
+  padding: 9px 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--green);
+  background: var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.complete-btn:hover { background: rgba(76,175,125,0.22); }
+.complete-btn.done  { opacity: 0.45; cursor: default; pointer-events: none; }
+
+/* Prose */
+.prose {
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.prose p          { margin-bottom: 15px; }
+.prose p:last-child { margin-bottom: 0; }
+.prose strong     { color: var(--text); font-weight: 500; }
+.prose em         { color: var(--accent); font-style: italic; }
+
+/* Section divider */
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 36px 0;
+}
+
+/* ============================================================
+   CHAT PANEL
+   ============================================================ */
+.chat-panel {
+  width: var(--chat-w);
+  min-width: var(--chat-w);
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+[dir="rtl"] .chat-panel {
+  border-left: none;
+  border-right: 1px solid var(--border);
+}
+
+.chat-panel.hidden {
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Chat header */
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.chat-status {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+/* API key setup */
+.api-setup {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.api-setup.hidden { display: none; }
+
+.api-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.api-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+
+.api-input:focus { border-color: var(--accent); }
+.api-input::placeholder { color: var(--text3); }
+
+.api-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--accent);
+  color: #0D0D0D;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.api-btn:hover { opacity: 0.85; }
+
+/* Chat messages */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  padding: 10px 13px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.65;
+  max-width: 88%;
+  word-break: break-word;
+}
+
+.msg.user {
+  background: var(--accent-dim);
+  border: 1px solid rgba(200,169,110,0.2);
+  color: var(--text);
+  align-self: flex-end;
+  border-bottom-right-radius: 3px;
+}
+
+[dir="rtl"] .msg.user {
+  align-self: flex-start;
+  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: 3px;
+}
+
+.msg.assistant {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  align-self: flex-start;
+  border-bottom-left-radius: 3px;
+}
+
+[dir="rtl"] .msg.assistant {
+  align-self: flex-end;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 3px;
+}
+
+.msg.system {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  align-self: center;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-align: center;
+  max-width: 95%;
+  border-radius: var(--radius);
+}
+
+/* Chat input row */
+.chat-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.chat-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  max-height: 110px;
+  overflow-y: auto;
+  transition: border-color 0.15s;
+}
+
+.chat-input:focus { border-color: var(--accent); }
+.chat-input::placeholder { color: var(--text3); }
+
+.send-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--accent);
+  color: #0D0D0D;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+  align-self: flex-end;
+}
+
+.send-btn:hover   { opacity: 0.85; }
+.send-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* ============================================================
+   TOAST NOTIFICATION
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 12px 24px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  z-index: 1000;
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+  text-align: center;
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE — max-width: 768px
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Sidebar slides in as overlay */
+  .sidebar {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    transform: translateX(-100%);
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+
+  [dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Chat panel as overlay on mobile */
+  .chat-panel {
+    position: fixed;
+    top: 0; bottom: 0; right: 0;
+    transform: translateX(100%);
+    z-index: 200;
+    transition: transform 0.3s ease;
+    width: min(var(--chat-w), 100vw);
+    min-width: 0;
+    opacity: 1;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.5);
+  }
+
+  [dir="rtl"] .chat-panel {
+    right: auto;
+    left: 0;
+    transform: translateX(-100%);
+  }
+
+  .chat-panel.hidden          { transform: translateX(100%); width: min(var(--chat-w), 100vw); opacity: 1; pointer-events: none; }
+  .chat-panel.mobile-open     { transform: translateX(0); pointer-events: all; }
+
+  [dir="rtl"] .chat-panel.hidden      { transform: translateX(-100%); }
+  [dir="rtl"] .chat-panel.mobile-open { transform: translateX(0); }
+
+  /* Reduced padding on small screens */
+  .content-area  { padding: 24px 20px 40px; }
+  .topbar        { padding: 0 16px; }
+
+  /* Smaller heading */
+  .phase-title-lg { font-size: 22px; }
+
+  /* Single column grids */
+  .concept-grid,
+  .tool-grid { grid-template-columns: 1fr; }
+}
+
+<style>
+/* ── Interactive Exercise Practice Area ── */
+.practice-area {
+  margin-top: 18px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+}
+.practice-header {
+  padding: 10px 14px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--text2);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.practice-history {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.practice-history:empty { display: none; }
+.ex-msg {
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: var(--font-body);
+  white-space: pre-wrap;
+}
+.ex-msg-user {
+  background: var(--accent);
+  color: #fff;
+  align-self: flex-end;
+  max-width: 88%;
+  border-bottom-right-radius: 3px;
+}
+.ex-msg-ai {
+  background: var(--bg2);
+  color: var(--text1);
+  align-self: flex-start;
+  max-width: 92%;
+  border-bottom-left-radius: 3px;
+  border: 1px solid var(--border);
+}
+.verdict-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  letter-spacing: .05em;
+}
+.verdict-pass  { background: #1a7a3f22; color: #1a7a3f; border: 1px solid #1a7a3f55; }
+.verdict-retry { background: #b8600022; color: #b86000; border: 1px solid #b8600055; }
+.practice-input-wrap {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  align-items: flex-end;
+}
+.practice-input {
+  flex: 1;
+  min-height: 72px;
+  max-height: 180px;
+  padding: 9px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: var(--bg2);
+  color: var(--text1);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color .15s;
+}
+.practice-input:focus { border-color: var(--accent); }
+.practice-input:disabled { opacity: .5; cursor: not-allowed; }
+.practice-submit {
+  padding: 9px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .15s;
+  flex-shrink: 0;
+}
+.practice-submit:hover  { opacity: .85; }
+.practice-submit:disabled { opacity: .35; cursor: not-allowed; }
+.practice-hint {
+  font-size: 11px;
+  color: var(--text3);
+  padding: 0 14px 8px;
+  font-family: var(--font-ui);
+}
+.practice-thinking {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text3);
+  font-family: var(--font-ui);
+  font-style: italic;
+}
+.think-dot {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: thinkPulse 1.2s infinite;
+}
+.think-dot:nth-child(2) { animation-delay: .2s; }
+.think-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes thinkPulse { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+</style>
+
+</style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div class="app" id="app">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <div class="sidebar" id="sidebar">
+
+    <!-- Logo / branding -->
+    <div class="sidebar-header">
+      <div class="logo" id="logo-text">AI MASTERY</div>
+      <div class="logo-sub" id="logo-sub">From Zero to Creative Empire</div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progress-label-text">Course Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <!-- One dot per phase (5 total) — JS adds .done / .active -->
+      <div class="milestone-row" id="milestone-row">
+        <div class="milestone-dot" data-milestone="0" title="Phase 1 — Foundations"></div>
+        <div class="milestone-dot" data-milestone="1" title="Phase 2 — Personal Life"></div>
+        <div class="milestone-dot" data-milestone="2" title="Phase 3 — First Income"></div>
+        <div class="milestone-dot" data-milestone="3" title="Phase 4 — Stable Business"></div>
+        <div class="milestone-dot" data-milestone="4" title="Phase 5 — Creative Empire"></div>
+      </div>
+    </div>
+
+    <!-- Navigation — populated by renderNav() in Block 5 -->
+    <nav id="main-nav" aria-label="Course navigation"></nav>
+
+    <!-- Language toggle footer -->
+    <!-- Settings panel — shown/hidden by gear button -->
+    <div class="settings-panel" id="settings-panel">
+
+      <div>
+        <div class="settings-section-label" id="lbl-provider">AI Provider</div>
+        <div class="settings-row" style="flex-wrap:wrap;gap:4px">
+          <button class="settings-opt active" id="prov-claude"  onclick="setProvider('claude')"  style="font-size:10px;padding:5px 8px" aria-label="Claude">Claude</button>
+          <button class="settings-opt"        id="prov-openai" onclick="setProvider('openai')"  style="font-size:10px;padding:5px 8px" aria-label="ChatGPT">ChatGPT</button>
+          <button class="settings-opt"        id="prov-gemini" onclick="setProvider('gemini')"  style="font-size:10px;padding:5px 8px" aria-label="Gemini">Gemini ✦</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="settings-section-label" id="lbl-fontsize">Font Size</div>
+        <div class="settings-row">
+          <button class="settings-opt" id="fs-sm"  onclick="setFontSize('sm')"  aria-label="Small font">A</button>
+          <button class="settings-opt active" id="fs-md" onclick="setFontSize('md')" aria-label="Medium font" style="font-size:13px">A</button>
+          <button class="settings-opt" id="fs-lg"  onclick="setFontSize('lg')"  aria-label="Large font"  style="font-size:16px">A</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="settings-section-label" id="lbl-theme">Theme</div>
+        <div class="settings-row">
+          <button class="settings-opt" id="theme-dark"  onclick="setTheme('dark')"  aria-label="Dark theme">🌙 Dark</button>
+          <button class="settings-opt" id="theme-light" onclick="setTheme('light')" aria-label="Light theme">☀️ Light</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="settings-section-label" id="lbl-progress">Progress</div>
+        <button class="reset-btn" id="btn-reset" onclick="resetProgress()">⟳ Reset Progress</button>
+      </div>
+
+    </div><!-- /.settings-panel -->
+
+    <div class="sidebar-footer">
+      <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-label="Switch to English">English</button>
+      <button class="lang-btn"        id="btn-ar" onclick="setLang('ar')" aria-label="التبديل إلى العربية">العربية</button>
+      <button class="settings-btn" id="settings-btn" onclick="toggleSettings()" aria-label="Settings" title="Settings">⚙️</button>
+    </div>
+
+  </div><!-- /.sidebar -->
+
+  <!-- ── MAIN COLUMN ──────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="nav-btn" id="back-btn" onclick="goBack()" disabled title="Go back" aria-label="Go back">&#8592; Back</button>
+        <button class="nav-btn" onclick="goHome()" title="Course home" aria-label="Go to home">&#8962; Home</button>
+        <div class="topbar-title" id="topbar-title">Welcome</div>
+      </div>
+      <div class="topbar-sub" id="topbar-sub">AI Mastery Course</div>
+      <!-- Chat toggle -->
+      <button class="chat-toggle-btn" id="chat-toggle" onclick="toggleChat()" aria-label="Toggle AI assistant">
+        💬&nbsp;<span id="chat-btn-label">Ask Claude</span>
+      </button>
+    </div>
+
+    <!-- Content + Chat wrapper -->
+    <div style="display:flex; flex:1; overflow:hidden;">
+
+      <!-- Content area — populated by renderContent() in Block 5 -->
+      <div class="content-area" id="content-area" role="main"></div>
+
+      <!-- ── CHAT PANEL ──────────────────────────────────── -->
+      <div class="chat-panel hidden" id="chat-panel" aria-label="AI assistant chat">
+
+        <!-- Chat header -->
+        <div class="chat-header">
+          <div class="chat-status" aria-hidden="true"></div>
+          <span id="chat-header-text">Claude — AI Assistant</span>
+        </div>
+
+        <!-- API key setup (hidden once key is entered) -->
+        <div class="api-setup" id="api-setup">
+          <div class="api-label" id="api-label-text">Enter your Anthropic API Key</div>
+          <input
+            type="password"
+            class="api-input"
+            id="api-key-input"
+            placeholder="sk-ant-..."
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button class="api-btn" id="api-start-btn" onclick="startChat()">Start Chatting</button>
+          <p style="font-size:11px; color:var(--text3); margin-top:9px; line-height:1.5;" id="api-note">
+            Your key stays in your browser only. Get yours free at console.anthropic.com
+          </p>
+        </div>
+
+        <!-- Message list -->
+        <div class="chat-messages" id="chat-messages" role="log" aria-live="polite">
+          <div class="msg system" id="chat-welcome">
+            Enter your API key above to start chatting with Claude directly inside the course.
+          </div>
+        </div>
+
+        <!-- Input row -->
+        <div class="chat-input-row">
+          <textarea
+            class="chat-input"
+            id="chat-input"
+            placeholder="Ask anything…"
+            rows="1"
+            onkeydown="handleKey(event)"
+            aria-label="Message Claude"
+          ></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMsg()" disabled aria-label="Send message">↑</button>
+        </div>
+
+      </div><!-- /.chat-panel -->
+
+    </div><!-- /flex content+chat -->
+
+  </div><!-- /.main -->
+
+</div><!-- /.app -->
+
+<!-- ── TOAST ────────────────────────────────────────────── -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+let PHASES = []; // loaded from content.json
+
+const L = () => state.lang;
+
+const STORAGE_KEY = 'ai_mastery_v1';
+const SETTINGS_KEY = 'ai_mastery_settings';
+
+let state = {
+  lang: 'en',
+  completed: {},
+  currentPage: 'welcome',
+  apiKey: '',
+  apiKeys: { claude: '', openai: '', gemini: '' },
+  chatHistory: []
+};
+
+const T = {
+  en: {
+    logoSub: 'From Zero to Creative Empire',
+    progressLabel: 'Course Progress',
+    chatBtn: 'Ask Claude',
+    chatHeader: 'Claude — AI Assistant',
+    apiLabel: 'Enter Anthropic API Key',
+    apiNote: 'Your key stays only in your browser. Get it free from console.anthropic.com',
+    apiStart: 'Start Chat',
+    markDone: '✓ Mark as Complete',
+    done: '✓ Completed',
+    exercise: 'Practical Exercise',
+    landscape: '🗺 Overview First'
+  },
+  ar: {
+    logoSub: 'من الصفر إلى الإمبراطورية الإبداعية',
+    progressLabel: 'التقدم في الدورة',
+    chatBtn: 'اسأل كلود',
+    chatHeader: 'كلود — المساعد الذكي',
+    apiLabel: 'أدخل مفتاح Anthropic API',
+    apiNote: 'مفتاحك يبقى في متصفحك فقط. احصل عليه مجاناً من console.anthropic.com',
+    apiStart: 'ابدأ المحادثة',
+    markDone: '✓ تحديد كمكتمل',
+    done: '✓ مكتمل',
+    exercise: 'تمرين عملي',
+    landscape: '🗺 نظرة عامة أولاً'
+  }
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    state = { ...state, ...saved, completed: { ...state.completed, ...(saved.completed || {}) }, chatHistory: Array.isArray(saved.chatHistory) ? saved.chatHistory : [] };
+    // Migrate legacy single apiKey to per-provider apiKeys
+    if (!state.apiKeys) state.apiKeys = { claude: state.apiKey || '', openai: '', gemini: '' };
+  } catch (err) { console.error('Failed to load state:', err); }
+}
+
+/* ── Settings: theme, font size ─────────────────────────── */
+const defaultSettings = { theme: 'dark', fontSize: 'md', provider: 'claude' };
+let appSettings = { ...defaultSettings };
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) appSettings = { ...defaultSettings, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings)); } catch(e) {}
+}
+
+function applySettings() {
+  // Theme
+  document.documentElement.classList.toggle('light', appSettings.theme === 'light');
+  document.getElementById('theme-dark')?.classList.toggle('active',  appSettings.theme === 'dark');
+  document.getElementById('theme-light')?.classList.toggle('active', appSettings.theme === 'light');
+  // Font size — classes on html element (zoom targets content areas)
+  document.documentElement.classList.remove('font-sm', 'font-lg');
+  if (appSettings.fontSize === 'sm') document.documentElement.classList.add('font-sm');
+  if (appSettings.fontSize === 'lg') document.documentElement.classList.add('font-lg');
+  ['fs-sm','fs-md','fs-lg'].forEach(id => {
+    document.getElementById(id)?.classList.remove('active');
+  });
+  document.getElementById('fs-' + appSettings.fontSize)?.classList.add('active');
+  updateProviderUI();
+}
+
+function setTheme(t) {
+  appSettings.theme = t;
+  saveSettings();
+  applySettings();
+}
+
+function setFontSize(s) {
+  appSettings.fontSize = s;
+  saveSettings();
+  applySettings();
+}
+
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const btn   = document.getElementById('settings-btn');
+  if (!panel) return;
+  panel.classList.toggle('open');
+  btn?.classList.toggle('active', panel.classList.contains('open'));
+}
+
+function resetProgress() {
+  const lang = state.lang;
+  const msg = lang === 'ar'
+    ? 'هل تريد مسح كل التقدم والبدء من جديد؟'
+    : 'Reset all progress and start from scratch?';
+  if (!confirm(msg)) return;
+  state.completed = {};
+  state.currentPage = 'welcome';
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  updateProgress();
+  navigateTo('welcome');
+  toggleSettings();
+  showToast(lang === 'ar' ? 'تم إعادة ضبط التقدم ✓' : 'Progress reset ✓');
+}
+
+// Close settings panel when clicking outside
+document.addEventListener('click', e => {
+  const panel = document.getElementById('settings-panel');
+  const btn   = document.getElementById('settings-btn');
+  if (panel?.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+    panel.classList.remove('open');
+    btn?.classList.remove('active');
+  }
+});
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (err) { console.error('Failed to save state:', err); }
+}
+
+function totalSteps() {
+  if (!Array.isArray(PHASES)) return 0;
+  let count = 0;
+  PHASES.forEach(phase => { if (Array.isArray(phase.steps)) count += phase.steps.length; });
+  return count;
+}
+
+function completedCount() { return Object.values(state.completed).filter(Boolean).length; }
+
+function progressPct() {
+  const total = totalSteps();
+  if (!total) return 0;
+  return Math.round((completedCount() / total) * 100);
+}
+
+function updateProgress() {
+  const pct = progressPct();
+  const fill = document.getElementById('progress-fill');
+  const pctText = document.getElementById('progress-pct');
+  if (fill) fill.style.width = `${pct}%`;
+  if (pctText) pctText.textContent = `${pct}%`;
+  const dots = document.querySelectorAll('.milestone-dot');
+  PHASES.forEach((ph, i) => {
+    const phSteps = ph.steps.map(s => s.id);
+    const phDone = phSteps.filter(id => state.completed[id]).length;
+    if (dots[i]) {
+      dots[i].classList.toggle('done', phDone === phSteps.length);
+      dots[i].classList.toggle('active', phDone > 0 && phDone < phSteps.length);
+    }
+  });
+}
+
+function markComplete(stepId) {
+  if (!stepId || state.completed[stepId]) return;
+  state.completed[stepId] = true;
+  saveState();
+  updateProgress();
+  if (typeof renderNav === 'function') renderNav();
+  const btn = document.getElementById(`complete-btn-${stepId}`);
+  if (btn) { btn.classList.add('done'); btn.textContent = T[state.lang].done; btn.disabled = true; }
+  if (Array.isArray(PHASES)) {
+    PHASES.forEach((phase, pi) => {
+      if (!Array.isArray(phase.steps)) return;
+      const inThisPhase = phase.steps.some(s => s.id === stepId);
+      const allDone = phase.steps.every(s => state.completed[s.id]);
+      if (inThisPhase && allDone) {
+        const name = state.lang === 'ar' ? (phase.ar?.title || phase.en?.title) : (phase.en?.title || phase.ar?.title);
+        showToast(`🎉 ${name} complete!`);
+      }
+    });
+  }
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// Navigation history for Back button
+const _navHistory = [];
+let _navigatingBack = false;
+
+function goHome() {
+  navigateTo('welcome');
+}
+
+function goBack() {
+  if (_navHistory.length < 2) return;
+  _navHistory.pop(); // remove current
+  const prev = _navHistory.pop(); // get previous (navigateTo will re-push it)
+  _navigatingBack = true;
+  navigateTo(prev);
+  _navigatingBack = false;
+}
+
+function _updateBackBtn() {
+  const btn = document.getElementById('back-btn');
+  if (btn) btn.disabled = _navHistory.length < 2;
+}
+
+function navigateTo(pageId) {
+  if (!pageId) return;
+  if (!_navigatingBack) {
+    // Don't push duplicates consecutively
+    if (_navHistory[_navHistory.length - 1] !== pageId) {
+      _navHistory.push(pageId);
+      if (_navHistory.length > 50) _navHistory.shift(); // cap history
+    }
+  }
+  _updateBackBtn();
+  state.currentPage = pageId;
+  saveState();
+  updateProviderUI(); // keep provider-specific chat button label
+  if (typeof renderNav === 'function') renderNav();
+  if (typeof renderContent === 'function') renderContent(pageId);
+  const contentArea = document.getElementById('content-area');
+  if (contentArea) contentArea.scrollTo({ top: 0, behavior: 'smooth' });
+  const titleEl = document.getElementById('topbar-title');
+  if (titleEl) {
+    if (pageId === 'welcome') {
+      titleEl.textContent = state.lang === 'ar' ? 'الرئيسية' : 'Welcome';
+    } else {
+      let found = '';
+      PHASES.forEach(ph => {
+        if (`phase_${ph.id}` === pageId) found = state.lang === 'ar' ? (ph.ar?.title || ph.en?.title) : (ph.en?.title || ph.ar?.title);
+        (ph.steps || []).forEach(step => {
+          if (step.id === pageId) found = state.lang === 'ar' ? (step.ar?.title || step.en?.title) : (step.en?.title || step.ar?.title);
+        });
+      });
+      titleEl.textContent = found || 'AI Mastery';
+    }
+  }
+}
+
+function setLang(lang) {
+  if (!T[lang]) return;
+  state.lang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.body.classList.toggle('ar', lang === 'ar');
+  const btnEn = document.getElementById('btn-en');
+  const btnAr = document.getElementById('btn-ar');
+  if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+  if (btnAr) btnAr.classList.toggle('active', lang === 'ar');
+  const ids = {
+    'logo-sub': 'logoSub',
+    'progress-label-text': 'progressLabel',
+    'chat-btn-label': 'chatBtn',
+    'chat-header-text': 'chatHeader',
+    'api-label-text': 'apiLabel',
+    'api-note': 'apiNote',
+    'api-start-btn': 'apiStart'
+  };
+  Object.entries(ids).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = T[lang][key];
+  });
+  saveState();
+  if (typeof renderNav === 'function') renderNav();
+  if (typeof renderContent === 'function') renderContent(state.currentPage);
+}
+
+window.navigateTo = navigateTo;
+window.markComplete = markComplete;
+window.setLang = setLang;
+window.showToast = showToast;
+window.updateProgress = updateProgress;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const resp = await fetch('content.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    PHASES = await resp.json();
+  } catch(e) {
+    console.error('Failed to load content.json:', e);
+    document.body.innerHTML = '<div style="padding:2rem;font-family:sans-serif;color:#c00">' +
+      '<h2>Unable to load course content</h2>' +
+      '<p>Make sure <strong>content.json</strong> is in the same folder as this HTML file.</p>' +
+      '<p style="color:#888;font-size:.85em">Error: ' + e.message + '</p></div>';
+    return;
+  }
+  loadState();
+  loadSettings();
+  applySettings();
+  if (state.apiKey) {
+    const apiSetup = document.getElementById('api-setup');
+    const sendBtn = document.getElementById('send-btn');
+    if (apiSetup) apiSetup.classList.add('hidden');
+    if (sendBtn) sendBtn.disabled = false;
+    window.chatReady = true;
+  }
+  setLang(state.lang);
+  updateProgress();
+  navigateTo(state.currentPage || 'welcome');
+});
+
+function renderNav() {
+  const nav = document.getElementById('main-nav');
+  if (!nav) return;
+  const html = PHASES.map((ph, pi) => {
+    const phaseTitle = ph[L()]?.title || ph.en?.title;
+    const phasePageId = `phase_${ph.id}`;
+    const stepsHtml = ph.steps.map((step, si) => {
+      const completed = !!state.completed[step.id];
+      const active = state.currentPage === step.id;
+      return `<div class="nav-step ${active?'active':''} ${completed?'completed':''}" onclick="navigateTo('${step.id}')"><div class="step-num-sm">${completed?'✓':(si+1)}</div><span>${step[L()]?.title||step.en?.title}</span></div>`;
+    }).join('');
+    return `<div class="nav-phase"><div class="nav-phase-header ${state.currentPage===phasePageId?'active':''}" onclick="navigateTo('${phasePageId}')"><div class="phase-dot-sm" style="background:${ph.color}"></div><span>${phaseTitle}</span></div><div class="nav-steps">${stepsHtml}</div></div>`;
+  }).join('');
+  nav.innerHTML = html;
+}
+
+function renderContent(pageId) {
+  const content = document.getElementById('content-area');
+  if (!content) return;
+  let html = '';
+  if (pageId === 'welcome') html = renderWelcome();
+  else if (pageId.startsWith('phase_')) {
+    const phaseId = pageId.replace('phase_', '');
+    const pi = PHASES.findIndex(p => p.id === phaseId);
+    if (pi >= 0) html = renderPhase(PHASES[pi], pi);
+  } else {
+    let found = null;
+    PHASES.forEach((ph, pi) => { ph.steps.forEach((step, si) => { if (step.id === pageId) found = {step, ph, pi, si}; }); });
+    if (found) html = renderStep(found.step, found.ph, found.pi, found.si);
+  }
+  content.innerHTML = html || '<div class="fade-up">Not found</div>';
+}
+
+function renderWelcome() {
+  const isAr = L() === 'ar';
+  const timeline = PHASES.map((ph, i) => `<div class="tl-pill ${i===0?'active':''}" onclick="navigateTo('phase_${ph.id}')" style="cursor:pointer">${ph[L()]?.title||ph.en?.title}</div>${i<PHASES.length-1?'<div class="tl-line-sm"></div>':''}`).join('');
+  const cards = PHASES.map((ph, i) => {
+    const d = ph[L()] || ph.en;
+    return `<div class="concept-card" onclick="navigateTo('phase_${ph.id}')" style="cursor:pointer;border-left:3px solid ${ph.color}"><div class="concept-name" style="color:${ph.color}">${isAr?'المرحلة':'Phase'} ${i+1} · ${d.title}</div><div class="concept-desc">${d.sub||''}</div><div class="concept-desc" style="margin-top:6px">${(d.desc||'').substring(0,80)}...</div></div>`;
+  }).join('');
+  return `<div class="fade-up"><div class="phase-hero"><div class="phase-eyebrow"><div class="phase-dot" style="background:var(--accent)"></div>${isAr?'أهلاً بك':'Welcome'}</div><h1 class="phase-title-lg">${isAr?'من الصفر إلى الإمبراطورية الإبداعية':'From Zero to Creative Empire'}</h1><p class="phase-desc">${isAr?'رحلة عملية شاملة من تعلم الذكاء الاصطناعي إلى بناء أعمال إبداعية مستدامة':'A practical journey from AI foundations to building creative businesses'}</p><div class="timeline-strip">${timeline}</div></div><div class="concept-grid">${cards}</div><div class="callout"><strong>${isAr?'كيف تستخدم الدورة:':'How to use this course:'}</strong> ${isAr?'تنقل عبر المراحل بالترتيب. اقرأ كل درس، افتح لوحة كلود ونفذ التمرين مباشرة. علّم التقدم عند إكمال كل خطوة.':'Navigate through phases in order. Read each lesson, open the Claude panel and do the exercise directly. Mark steps complete as you go.'}</div></div>`;
+}
+
+function renderPhase(ph, pi) {
+  const d = ph[L()] || ph.en;
+  const isAr = L() === 'ar';
+  const doneCount = ph.steps.filter(s => state.completed[s.id]).length;
+  const cards = ph.steps.map((step, si) => {
+    const sd = step[L()] || step.en;
+    const done = !!state.completed[step.id];
+    return `<div class="concept-card" onclick="navigateTo('${step.id}')" style="cursor:pointer;${done?'border-color:var(--green)':''}"><div class="concept-name" style="color:${done?'var(--green)':ph.color}">${done?'✓ '+(isAr?'مكتمل':'Complete'):`${isAr?'الخطوة':'Step'} ${si+1}`}</div><div class="concept-name">${sd.title}</div><div class="concept-desc">${sd.sub||''}</div></div>`;
+  }).join('');
+  return `<div class="fade-up"><div class="phase-hero"><div class="phase-eyebrow"><div class="phase-dot" style="background:${ph.color}"></div><span style="color:${ph.color}">${isAr?'المرحلة':'Phase'} ${pi+1}</span></div><h1 class="phase-title-lg">${d.title}</h1><p class="phase-desc">${d.desc||''}</p><div style="font-family:var(--font-ui);font-size:12px;color:var(--text3);margin-top:12px">${doneCount}/${ph.steps.length} ${isAr?'خطوات مكتملة':'steps complete'} · ${d.sub||''}</div></div><div class="concept-grid">${cards}</div></div>`;
+}
+
+function renderStep(step, ph, pi, si) {
+  const d = step[L()] || step.en;
+  const isAr = L() === 'ar';
+  const completed = !!state.completed[step.id];
+
+  const landscapeSection = d.landscape ? `<div class="step-section"><div class="exercise-label">${T[L()].landscape}</div><div class="prose">${d.landscape}</div>${d.landscapeGrid?.length?`<div class="concept-grid">${d.landscapeGrid.map(c=>`<div class="concept-card"><div class="concept-icon">${c.icon||'•'}</div><div class="concept-name">${c.name||c.title||''}</div><div class="concept-desc">${c.desc||''}</div></div>`).join('')}</div>`:''}</div>` : '';
+
+  const contentSection = d.content ? `<div class="step-section"><div class="prose">${d.content}</div>${d.conceptCards?.length?`<div class="concept-grid">${d.conceptCards.map(c=>`<div class="concept-card"><div class="concept-icon">${c.icon||'•'}</div><div class="concept-name">${c.name||c.title||''}</div><div class="concept-desc">${c.desc||''}</div></div>`).join('')}</div>`:''}</div>` : '';
+
+  let comparisonSection = '';
+  if (d.comparison?.length) {
+    const firstRow = d.comparison[0];
+    const hasFeature = 'feature' in firstRow;
+    if (hasFeature) {
+      comparisonSection = `<div class="step-section"><div class="exercise-label">${d.comparisonTitle||'Comparison'}</div><table class="comparison-table"><thead><tr><th>${isAr?'العنصر':'Feature'}</th><th>${isAr?'التقليدي':'Traditional'}</th><th>${isAr?'المحسّن':'AI-Powered'}</th></tr></thead><tbody>${d.comparison.map(r=>`<tr><td><strong>${r.feature||''}</strong></td><td>${r.alternative||''}</td><td style="color:var(--green)">${r.preferred||''}</td></tr>`).join('')}</tbody></table></div>`;
+    } else {
+      comparisonSection = `<div class="step-section"><div class="exercise-label">${d.comparisonTitle||'Tool Comparison'}</div><table class="comparison-table"><thead><tr><th>${isAr?'الأداة':'Tool'}</th><th>${isAr?'القوة':'Strength'}</th><th>${isAr?'الأفضل لـ':'Best For'}</th></tr></thead><tbody>${d.comparison.map(r=>`<tr class="${r.badge&&r.badge!==''?'highlight-row':''}"><td><strong>${r.name||''}</strong></td><td>${r.strength||''}</td><td>${r.best||r.bestFor||''}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+  }
+
+  const calloutSection = d.callout ? `<div class="callout">${d.callout}</div>` : '';
+
+  const exDone = !!state.completed[step.id];
+  const exPrompts = (d.exercise?.prompts||[]);
+  const exerciseSection = `<div class="exercise-box">
+<div class="exercise-label">${T[L()].exercise}</div>
+<div class="exercise-title">${d.exercise?.title||''}</div>
+<div class="exercise-desc">${d.exercise?.desc||''}</div>
+${exPrompts.length ? `<div style="font-family:var(--font-ui);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--text3);margin:10px 0 4px;text-transform:uppercase">${isAr?'أمثلة للإلهام:':'Example prompts for reference:'}</div>${exPrompts.map(p=>`<div class="exercise-prompt">${p}</div>`).join('')}` : ''}
+<div class="practice-area">
+  <div class="practice-header"><span>✍️</span>${isAr?'مساحة التدريب — اكتب محاولتك':'Practice Space — write your attempt'}</div>
+  <div class="practice-history" id="ph-${step.id}"></div>
+  <div class="practice-input-wrap">
+    <textarea class="practice-input" id="pi-${step.id}"
+      placeholder="${exDone ? (isAr?'✓ تم إتقان هذه المهارة':'✓ Skill mastered') : (isAr?'اكتب محاولتك هنا... (Ctrl+Enter للإرسال)':'Write your attempt here... (Ctrl+Enter to submit)')}"
+      ${exDone?'disabled':''}
+      onkeydown="if(event.ctrlKey&&event.key==='Enter'){submitExercise('${step.id}');}"
+    ></textarea>
+    <button class="practice-submit" id="ps-${step.id}"
+      onclick="submitExercise('${step.id}')"
+      ${exDone?'disabled':''}
+    >${isAr?'إرسال ↑':'Submit ↑'}</button>
+  </div>
+  <div class="practice-hint">${isAr?'Ctrl+Enter للإرسال • يحتاج مفتاح API في لوحة المساعد':'Ctrl+Enter to submit • Requires API key in the assistant panel'}</div>
+</div>
+<button class="complete-btn ${exDone?'done':''}" id="complete-btn-${step.id}" ${exDone?'':'disabled'} style="${exDone?'':'opacity:.4;cursor:default'}">${exDone?T[L()].done:(isAr?'✓ يكتمل تلقائياً عند إتقان المهارة':'✓ Auto-completes when skill is mastered')}</button>
+</div>`;
+
+  const allSteps = PHASES.flatMap(p => p.steps);
+  const idx = allSteps.findIndex(s => s.id === step.id);
+  const prev = idx > 0 ? allSteps[idx-1] : null;
+  const next = idx < allSteps.length-1 ? allSteps[idx+1] : null;
+  const navSection = `<div style="display:flex;justify-content:space-between;margin-top:40px;padding-top:24px;border-top:1px solid var(--border)">${prev?`<button onclick="navigateTo('${prev.id}')" style="padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font-ui);font-size:13px;cursor:pointer">← ${isAr?'السابق':'Previous'}</button>`:'<div></div>'}${next?`<button onclick="navigateTo('${next.id}')" style="padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font-ui);font-size:13px;cursor:pointer">${isAr?'التالي':'Next'} →</button>`:'<div></div>'}</div>`;
+
+  setTimeout(() => bindCompleteBtn(step.id), 0);
+
+  return `<div class="fade-up"><div class="phase-hero" style="margin-bottom:28px;padding-bottom:20px"><div class="phase-eyebrow"><div class="phase-dot" style="background:${ph.color}"></div><span style="color:${ph.color};cursor:pointer" onclick="navigateTo('phase_${ph.id}')">${ph[L()]?.title||ph.en?.title}</span><span style="color:var(--text3)"> / ${isAr?'الخطوة':'Step'} ${si+1}</span></div><h1 class="phase-title-lg" style="font-size:24px">${d.title}</h1><p class="phase-desc" style="font-size:14px">${d.sub||''}</p></div>${landscapeSection}${contentSection}${comparisonSection}${calloutSection}${exerciseSection}${navSection}</div>`;
+}
+
+function bindCompleteBtn(stepId) {
+  const btn = document.getElementById(`complete-btn-${stepId}`);
+  if (!btn || state.completed[stepId]) return;
+  btn.onclick = () => markComplete(stepId);
+}
+
+window.renderNav = renderNav;
+window.renderContent = renderContent;
+window.renderWelcome = renderWelcome;
+window.renderPhase = renderPhase;
+window.renderStep = renderStep;
+window.bindCompleteBtn = bindCompleteBtn;
+
+
+/* ── AI Provider configuration ───────────────────────────── */
+const PROVIDERS = {
+  claude: {
+    name: 'Claude',
+    nameAr: 'كلود',
+    keyPrefix: 'sk-ant-',
+    keyPlaceholder: 'sk-ant-...',
+    keysUrl: 'https://console.anthropic.com/settings/keys',
+    billingUrl: 'https://console.anthropic.com/settings/billing',
+    billingName: 'Anthropic Console'
+  },
+  openai: {
+    name: 'ChatGPT (GPT-4o mini)',
+    nameAr: 'ChatGPT',
+    keyPrefix: 'sk-',
+    keyPlaceholder: 'sk-...',
+    keysUrl: 'https://platform.openai.com/api-keys',
+    billingUrl: 'https://platform.openai.com/account/billing',
+    billingName: 'OpenAI Platform'
+  },
+  gemini: {
+    name: 'Gemini Flash',
+    nameAr: 'Gemini (مجاني)',
+    keyPrefix: 'AIza',
+    keyPlaceholder: 'AIza...',
+    keysUrl: 'https://aistudio.google.com/app/apikey',
+    billingUrl: 'https://aistudio.google.com/app/apikey',
+    billingName: 'Google AI Studio'
+  }
+};
+
+function setProvider(p) {
+  appSettings.provider = p;
+  saveSettings();
+  applySettings();
+}
+
+function updateProviderUI() {
+  const p   = appSettings.provider || 'claude';
+  const cfg = PROVIDERS[p];
+  if (!cfg) return;
+  const isAr = state.lang === 'ar';
+
+  // Highlight active provider button
+  ['claude','openai','gemini'].forEach(id => {
+    document.getElementById('prov-' + id)?.classList.toggle('active', id === p);
+  });
+
+  // Chat header
+  const chatHeader = document.getElementById('chat-header-text');
+  if (chatHeader) {
+    chatHeader.textContent = isAr
+      ? cfg.nameAr + ' — المساعد الذكي'
+      : cfg.name + ' — AI Assistant';
+  }
+
+  // Chat toggle button label ("Ask Claude" / "Ask ChatGPT" / "Ask Gemini")
+  const chatBtnLabel = document.getElementById('chat-btn-label');
+  if (chatBtnLabel) {
+    const shortName = p === 'openai' ? 'ChatGPT' : p === 'gemini' ? 'Gemini' : 'Claude';
+    chatBtnLabel.textContent = isAr ? 'اسأل ' + shortName : 'Ask ' + shortName;
+  }
+
+  // API setup UI
+  const keyInput = document.getElementById('api-key-input');
+  const labelEl  = document.getElementById('api-label-text');
+  const noteEl   = document.getElementById('api-note');
+  if (keyInput) keyInput.placeholder = cfg.keyPlaceholder;
+  if (labelEl) {
+    labelEl.textContent = isAr
+      ? 'أدخل مفتاح ' + cfg.name + ' API'
+      : 'Enter your ' + cfg.name + ' API Key';
+  }
+  if (noteEl) {
+    noteEl.innerHTML = isAr
+      ? 'مفتاحك يبقى في متصفحك فقط. <a href="' + cfg.keysUrl + '" target="_blank" style="color:var(--accent);text-decoration:underline">احصل عليه من هنا ↗</a>'
+      : 'Your key stays in your browser only. <a href="' + cfg.keysUrl + '" target="_blank" style="color:var(--accent);text-decoration:underline">Get yours here ↗</a>';
+  }
+
+  // Pre-fill saved key
+  const savedKey = (state.apiKeys && state.apiKeys[p]) || (p === 'claude' ? (state.apiKey || '') : '') || '';
+  if (keyInput) keyInput.value = savedKey;
+
+  // Show/hide api-setup + enable/disable send button
+  const apiSetup = document.getElementById('api-setup');
+  const sendBtn  = document.getElementById('send-btn');
+  if (savedKey) {
+    if (apiSetup) apiSetup.classList.add('hidden');
+    if (sendBtn)  sendBtn.disabled = false;
+    chatReady = true;
+    window.chatReady = true;
+  } else {
+    if (apiSetup) apiSetup.classList.remove('hidden');
+    if (sendBtn)  sendBtn.disabled = true;
+    chatReady = false;
+    window.chatReady = false;
+  }
+}
+
+let chatReady = false;
+
+function toggleChat() {
+  const chatPanel = document.getElementById('chat-panel');
+  const chatToggle = document.getElementById('chat-toggle');
+
+  if (!chatPanel || !chatToggle) return;
+
+  if (window.innerWidth < 768) {
+    chatPanel.classList.toggle('mobile-open');
+  } else {
+    chatPanel.classList.toggle('hidden');
+    chatToggle.classList.toggle('active');
+  }
+}
+
+function startChat() {
+  const p   = appSettings.provider || 'claude';
+  const cfg = PROVIDERS[p];
+  const input = document.getElementById('api-key-input');
+  const key = input ? input.value.trim() : '';
+  const isAr = state.lang === 'ar';
+
+  if (!key || !key.startsWith(cfg.keyPrefix)) {
+    alert(isAr
+      ? 'يرجى إدخال مفتاح ' + cfg.name + ' API صحيح يبدأ بـ ' + cfg.keyPrefix
+      : 'Please enter a valid ' + cfg.name + ' API key starting with ' + cfg.keyPrefix);
+    return;
+  }
+
+  if (!state.apiKeys) state.apiKeys = { claude: '', openai: '', gemini: '' };
+  state.apiKeys[p] = key;
+  if (p === 'claude') state.apiKey = key; // backward compat
+  saveState();
+
+  const apiSetup = document.getElementById('api-setup');
+  if (apiSetup) apiSetup.classList.add('hidden');
+  const sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.disabled = false;
+  chatReady = true;
+  window.chatReady = true;
+
+  const provName = isAr ? cfg.nameAr : cfg.name;
+  const welcomeMsg = isAr
+    ? 'أهلاً بك! أنا مساعدك الذكي في هذه الدورة. كيف يمكنني مساعدتك اليوم؟'
+    : "Hello! I'm your AI assistant for this course. How can I help you today?";
+  addMsg('assistant', welcomeMsg);
+}
+
+function addMsg(role, text) {
+  const chatMessages = document.getElementById('chat-messages');
+  if (!chatMessages) return;
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `msg ${role} fade-up`;
+
+  // Basic Markdown-lite handling
+  let formattedText = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .split(String.fromCharCode(10)).join('<br>');
+
+  msgDiv.innerHTML = formattedText;
+  chatMessages.appendChild(msgDiv);
+
+  chatMessages.scrollTo({
+    top: chatMessages.scrollHeight,
+    behavior: 'smooth'
+  });
+}
+
+function addTyping() {
+  const chatMessages = document.getElementById('chat-messages');
+  if (!chatMessages) return null;
+
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg assistant typing-indicator';
+  typingDiv.id = 'typing-indicator';
+  typingDiv.innerHTML = '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+  
+  chatMessages.appendChild(typingDiv);
+  chatMessages.scrollTo({
+    top: chatMessages.scrollHeight,
+    behavior: 'smooth'
+  });
+
+  return typingDiv;
+}
+
+/* ── System prompt: course-aware ───────────────────── */
+function buildSystemPrompt() {
+  const isAr = state.lang === 'ar';
+  let stepContext = '';
+  const page = state.currentPage;
+  if (page && page !== 'welcome' && PHASES && PHASES.length) {
+    outer: for (const phase of PHASES) {
+      for (const step of (phase.steps || [])) {
+        if (step.id === page) {
+          const pTitle = isAr ? (phase.title?.ar || phase.title?.en || '') : (phase.title?.en || phase.title?.ar || '');
+          const sTitle = isAr ? (step.title?.ar  || step.title?.en  || '') : (step.title?.en  || step.title?.ar  || '');
+          stepContext = isAr
+            ? 'المرحلة الحالية: ' + pTitle + ' — الخطوة: ' + sTitle
+            : 'Current phase: ' + pTitle + ' — Step: ' + sTitle + '';
+          break outer;
+        }
+      }
+    }
+  }
+  const ctx = stepContext ? '\n\n' + stepContext : '';
+  if (isAr) {
+    return 'أنت مساعد تعليمي ذكي مدمج في "دورة إتقان الذكاء الاصطناعي" — دورة تفاعلية تساعد المتعلمين على فهم الذكاء الاصطناعي واستخدامه في العمل والإبداع والحياة اليومية.\n\nدورك:\n- ساعد المتعلم على فهم المفاهيم وقدّم ملاحظات بنّاءة على تمارينه\n- أجب بصراحة ووضوح على أي سؤال سواء تعلق بالدورة أو بأي موضوع آخر\n- كن مشجّعاً وصادقاً وعملياً' + ctx;
+  }
+  return 'You are an intelligent learning assistant embedded in the "AI Mastery Course" — an interactive course helping learners understand and apply AI in their work, creativity, and everyday life.\n\nYour role:\n- Help the learner understand concepts and give constructive feedback on exercises\n- Answer any question directly — course-related or broader topics are both welcome\n- Be encouraging, honest, and practical; tie answers back to the course when relevant' + ctx;
+}
+/* ── Provider API callers ─────────────────────────────────── */
+async function callClaude(apiKey, systemPrompt) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: state.chatHistory.slice(-20).map(m => ({ role: m.role, content: m.content }))
+    })
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw { status: resp.status, provider: 'claude', message: data.error?.message || '' };
+  if (data.content?.[0]?.text) return data.content[0].text;
+  throw { status: 0, provider: 'claude', message: 'Empty response' };
+}
+
+async function callOpenAI(apiKey, systemPrompt) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...state.chatHistory.slice(-20).map(m => ({ role: m.role, content: m.content }))
+  ];
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 1000, messages })
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw { status: resp.status, provider: 'openai', message: data.error?.message || '' };
+  if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
+  throw { status: 0, provider: 'openai', message: 'Empty response' };
+}
+
+async function callGemini(apiKey, systemPrompt) {
+  const contents = state.chatHistory.slice(-20).map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+  const resp = await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents,
+        generationConfig: { maxOutputTokens: 1000 }
+      })
+    }
+  );
+  const data = await resp.json();
+  if (!resp.ok) throw { status: resp.status, provider: 'gemini', message: data.error?.message || '' };
+  if (data.candidates?.[0]?.content?.parts?.[0]?.text) return data.candidates[0].content.parts[0].text;
+  throw { status: 0, provider: 'gemini', message: 'Empty response' };
+}
+
+/* ── Provider-specific error messages with links ─────────── */
+function getApiErrorMsg(err, lang) {
+  const isAr = lang === 'ar';
+  const p   = (err && err.provider) || appSettings.provider || 'claude';
+  const cfg = PROVIDERS[p] || PROVIDERS.claude;
+  const s   = err && err.status;
+  const link = (url, label) => '<a href="' + url + '" target="_blank" style="color:var(--accent);text-decoration:underline">' + label + ' ↗</a>';
+
+  if (s === 401 || s === 403) {
+    return isAr
+      ? 'مفتاح API غير صحيح أو منتهي الصلاحية. تحقق منه على ' + link(cfg.keysUrl, cfg.billingName)
+      : 'Invalid or expired API key. Check it at ' + link(cfg.keysUrl, cfg.billingName);
+  }
+  if (s === 429) {
+    return isAr
+      ? 'نفد الرصيد أو تجاوزت الحد المسموح به. أضف رصيداً على ' + link(cfg.billingUrl, cfg.billingName)
+      : 'Credits exhausted or rate limit reached. Top up at ' + link(cfg.billingUrl, cfg.billingName);
+  }
+  if (s === 500 || s === 503) {
+    return isAr
+      ? 'الخادم غير متاح مؤقتاً. حاول مرة أخرى بعد لحظات.'
+      : 'The AI service is temporarily unavailable. Please try again in a moment.';
+  }
+  return isAr
+    ? 'خطأ في الاتصال بالمساعد الذكي. تحقق من اتصالك بالإنترنت ومفتاح API.'
+    : 'Could not connect to the AI assistant. Check your internet connection and API key.';
+}
+
+async function sendMsg() {
+  if (!chatReady) return;
+
+  const input = document.getElementById('chat-input');
+  const text = input ? input.value.trim() : '';
+  const sendBtn = document.getElementById('send-btn');
+
+  if (!text) return;
+
+  input.value = '';
+  addMsg('user', text);
+  state.chatHistory.push({ role: 'user', content: text });
+
+  const typingIndicator = addTyping();
+  if (sendBtn) sendBtn.disabled = true;
+
+  const p        = appSettings.provider || 'claude';
+  const apiKey   = (state.apiKeys && state.apiKeys[p]) || (p === 'claude' ? (state.apiKey || '') : '') || '';
+  const sysPrompt = buildSystemPrompt();
+
+  try {
+    let reply;
+    if (p === 'openai')      reply = await callOpenAI(apiKey, sysPrompt);
+    else if (p === 'gemini') reply = await callGemini(apiKey, sysPrompt);
+    else                     reply = await callClaude(apiKey, sysPrompt);
+
+    if (typingIndicator) typingIndicator.remove();
+    addMsg('assistant', reply);
+    state.chatHistory.push({ role: 'assistant', content: reply });
+
+  } catch (err) {
+    if (typingIndicator) typingIndicator.remove();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'msg system fade-up';
+    errDiv.innerHTML = getApiErrorMsg(err, state.lang);
+    document.getElementById('chat-messages')?.appendChild(errDiv);
+    document.getElementById('chat-messages')?.scrollTo({ top: 999999, behavior: 'smooth' });
+    console.error('Chat Error:', err);
+  }
+
+  state.chatHistory = state.chatHistory.slice(-40);
+  if (sendBtn) sendBtn.disabled = false;
+  saveState();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMsg();
+  }
+}
+
+// Expose to window scope
+window.toggleChat = toggleChat;
+window.setProvider = setProvider;
+window.startChat = startChat;
+window.addMsg = addMsg;
+window.addTyping = addTyping;
+window.sendMsg = sendMsg;
+window.handleKey = handleKey;
+window.chatReady = chatReady;
+
+
+window.submitExercise = submitExercise;
+</script>
+
+
+</body>
+</html>
