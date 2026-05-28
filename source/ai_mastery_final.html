@@ -985,6 +985,20 @@ nav { flex: 1; padding: 8px 0 12px; overflow-y: auto; }
   flex-shrink: 0;
 }
 
+.change-key-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text3);
+  font-size: 11px;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: color .15s, border-color .15s;
+}
+.change-key-btn:hover { color: var(--accent); border-color: var(--accent); }
+
 .chat-status {
   width: 7px;
   height: 7px;
@@ -1496,6 +1510,7 @@ nav { flex: 1; padding: 8px 0 12px; overflow-y: auto; }
         <div class="chat-header">
           <div class="chat-status" aria-hidden="true"></div>
           <span id="chat-header-text">Claude — AI Assistant</span>
+          <button class="change-key-btn" onclick="showApiSetup()" id="change-key-btn" title="Change API Key">🔑 Change Key</button>
         </div>
 
         <!-- API key setup (hidden once key is entered) -->
@@ -2025,9 +2040,49 @@ const PROVIDERS = {
 };
 
 function setProvider(p) {
+  if (appSettings.provider === p) { applySettings(); return; }
   appSettings.provider = p;
   saveSettings();
+  // Clear chat history when switching providers — different providers
+  // have incompatible message formats and this prevents API errors
+  state.chatHistory = [];
+  saveState();
+  // Clear the chat messages display
+  const chatMsgs = document.getElementById('chat-messages');
+  if (chatMsgs) {
+    const isAr = state.lang === 'ar';
+    chatMsgs.innerHTML = '<div class="msg system">' +
+      (isAr ? 'تم تغيير المزود. أدخل مفتاح API للبدء.' : 'Provider changed. Enter your API key to start chatting.') +
+      '</div>';
+  }
   applySettings();
+}
+
+function showApiSetup() {
+  // Let user re-enter or change their API key
+  const p      = appSettings.provider || 'claude';
+  const isAr   = state.lang === 'ar';
+  // Clear stored key for this provider
+  if (!state.apiKeys) state.apiKeys = { claude: '', openai: '', gemini: '' };
+  state.apiKeys[p] = '';
+  if (p === 'claude') state.apiKey = '';
+  saveState();
+  // Reset UI
+  const keyInput = document.getElementById('api-key-input');
+  const apiSetup = document.getElementById('api-setup');
+  const sendBtn  = document.getElementById('send-btn');
+  if (keyInput) keyInput.value = '';
+  if (apiSetup) apiSetup.classList.remove('hidden');
+  if (sendBtn)  sendBtn.disabled = true;
+  chatReady = false;
+  window.chatReady = false;
+  // Clear messages
+  const chatMsgs = document.getElementById('chat-messages');
+  if (chatMsgs) {
+    chatMsgs.innerHTML = '<div class="msg system">' +
+      (isAr ? 'أدخل مفتاح API الجديد أعلاه للمتابعة.' : 'Enter your new API key above to continue.') +
+      '</div>';
+  }
 }
 
 function updateProviderUI() {
@@ -2353,6 +2408,7 @@ function handleKey(e) {
 // Expose to window scope
 window.toggleChat = toggleChat;
 window.setProvider = setProvider;
+window.showApiSetup = showApiSetup;
 window.startChat = startChat;
 window.addMsg = addMsg;
 window.addTyping = addTyping;
