@@ -1392,6 +1392,67 @@ nav { flex: 1; padding: 8px 0 12px; overflow-y: auto; }
 .think-dot:nth-child(2) { animation-delay: .2s; }
 .think-dot:nth-child(3) { animation-delay: .4s; }
 @keyframes thinkPulse { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+/* ── Onboarding Tour ─────────────────────────── */
+.tour-highlight {
+  position: fixed; z-index: 9001; border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.60);
+  pointer-events: none;
+  transition: top 0.35s cubic-bezier(.4,0,.2,1),
+              left 0.35s cubic-bezier(.4,0,.2,1),
+              width 0.35s cubic-bezier(.4,0,.2,1),
+              height 0.35s cubic-bezier(.4,0,.2,1);
+}
+.tour-tooltip {
+  position: fixed; z-index: 9002;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1a1a2e);
+  border: 2px solid var(--accent, #6c63ff);
+  border-radius: 14px;
+  padding: 16px 18px 14px;
+  width: 260px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+  font-family: inherit;
+  animation: tourFadeIn 0.25s ease;
+}
+@keyframes tourFadeIn {
+  from { opacity:0; transform: translateY(6px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.tour-tooltip-title {
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 7px; color: var(--accent, #6c63ff);
+}
+.tour-tooltip-body {
+  font-size: 13px; line-height: 1.55;
+  margin-bottom: 14px;
+  color: var(--text-primary, #1a1a2e);
+}
+.tour-tooltip-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tour-dots { display: flex; gap: 5px; }
+.tour-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-muted, #aaa);
+  transition: background 0.2s;
+}
+.tour-dot.active { background: var(--accent, #6c63ff); }
+.tour-btn-row { display: flex; gap: 8px; }
+.tour-skip-btn {
+  font-size: 11px; background: none; border: none;
+  color: var(--text-muted, #aaa); cursor: pointer;
+  padding: 4px 6px; border-radius: 6px; font-family: inherit;
+}
+.tour-skip-btn:hover { color: var(--text-primary, #333); }
+.tour-next-btn {
+  font-size: 12px; font-weight: 600;
+  background: var(--accent, #6c63ff); color: #fff;
+  border: none; border-radius: 8px;
+  padding: 6px 14px; cursor: pointer; font-family: inherit;
+}
+.tour-next-btn:hover { opacity: 0.88; }
+
 </style>
 
 </style>
@@ -1619,7 +1680,7 @@ function loadState() {
 }
 
 /* ── Settings: theme, font size ─────────────────────────── */
-const defaultSettings = { theme: 'dark', fontSize: 'md', provider: 'claude' };
+const defaultSettings = { theme: 'light', fontSize: 'md', provider: 'claude' };
 let appSettings = { ...defaultSettings };
 
 function loadSettings() {
@@ -1878,6 +1939,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setLang(state.lang);
   updateProgress();
   navigateTo(state.currentPage || 'welcome');
+  if (window._startOnboardingTour) _startOnboardingTour();
 });
 
 function renderNav() {
@@ -2431,33 +2493,255 @@ window.handleKey = handleKey;
 window.chatReady = chatReady;
 
 
-// submitExercise stub — exercises use the AI chat panel for feedback
-function submitExercise(stepId) {
-  if (!chatReady) {
-    showToast(state.lang === 'ar'
-      ? 'أدخل مفتاح API في لوحة المساعد أولاً'
-      : 'Enter your API key in the assistant panel first');
-    return;
-  }
-  const input = document.getElementById('pi-' + stepId);
+async function submitExercise(stepId) {
+  const isAr  = state.lang === 'ar';
+  const input  = document.getElementById('pi-' + stepId);
+  const subBtn = document.getElementById('ps-' + stepId);
+  const histDiv = document.getElementById('ph-' + stepId);
   const attempt = input ? input.value.trim() : '';
-  if (!attempt) {
-    showToast(state.lang === 'ar' ? 'اكتب محاولتك أولاً' : 'Write your attempt first');
+
+  if (!chatReady) {
+    showToast(isAr ? 'أدخل مفتاح API في لوحة المساعد أولاً' : 'Enter your API key in the assistant panel first');
     return;
   }
-  // Open chat panel if hidden
-  const chatPanel = document.getElementById('chat-panel');
-  if (chatPanel && chatPanel.classList.contains('hidden')) toggleChat();
-  // Send to AI with exercise context
-  const chatInput = document.getElementById('chat-input');
-  if (chatInput) {
-    chatInput.value = (state.lang === 'ar'
-      ? 'هذه محاولتي للتمرين، أرجو تقييمها وإعطائي ملاحظات بنّاءة:\n\n'
-      : 'This is my exercise attempt, please evaluate it and give me constructive feedback:\n\n') + attempt;
-    sendMsg();
+  if (!attempt) {
+    showToast(isAr ? 'اكتب محاولتك أولاً' : 'Write your attempt first');
+    return;
+  }
+
+  // Find step + phase data for context
+  let stepCtx = null;
+  outer: for (const ph of PHASES) {
+    for (const step of (ph.steps || [])) {
+      if (step.id === stepId) { stepCtx = { ph, step }; break outer; }
+    }
+  }
+  const d  = stepCtx ? (stepCtx.step[state.lang] || stepCtx.step.en) : {};
+  const pd = stepCtx ? (stepCtx.ph[state.lang]   || stepCtx.ph.en)   : {};
+  const ex = d.exercise || {};
+  const phaseTitle = pd.title || '';
+  const stepTitle  = d.title  || '';
+  const exTitle    = ex.title || '';
+  const exDesc     = ex.desc  || '';
+  const exPrompts  = (ex.prompts || []).slice(0, 3).join(' | ');
+
+  // Disable while evaluating
+  if (subBtn) subBtn.disabled = true;
+  if (input)  input.disabled  = true;
+
+  // Show attempt bubble in history
+  if (histDiv) {
+    const attemptDiv = document.createElement('div');
+    attemptDiv.className = 'ex-msg ex-msg-user';
+    attemptDiv.textContent = attempt;
+    histDiv.appendChild(attemptDiv);
+
+    const thinkDiv = document.createElement('div');
+    thinkDiv.className = 'ex-msg ex-msg-ai';
+    thinkDiv.id = 'ex-think-' + stepId;
+    thinkDiv.style.opacity = '0.6';
+    thinkDiv.textContent = isAr ? '\u{1F914} جاري تقييم محاولتك...' : '\u{1F914} Evaluating your attempt...';
+    histDiv.appendChild(thinkDiv);
+    histDiv.scrollTop = histDiv.scrollHeight;
+  }
+
+  // Build evaluation system prompt
+  const sysPrompt = isAr
+    ? 'أنت مقيّم تمارين في "دورة إتقان الذكاء الاصطناعي".\nالسياق:\n- المرحلة: ' + phaseTitle + '\n- الخطوة: ' + stepTitle + '\n- التمرين: ' + exTitle + '\n- الوصف: ' + exDesc + (exPrompts ? '\n- أمثلة مرجعية: ' + exPrompts : '') + '\n\nمهمتك: قيّم محاولة الطالب بإيجاز (3-4 جمل). أذكر ما أحسنه, واقترح تحسيناً واحداً إن لزم. اختم بـ VERDICT: PASS إذا كانت المحاولة جيدة, أو VERDICT: RETRY إذا احتاج إعادة محاولة.'
+    : 'You are evaluating exercises in the "AI Mastery Course".\nContext:\n- Phase: ' + phaseTitle + '\n- Step: ' + stepTitle + '\n- Exercise: ' + exTitle + '\n- Description: ' + exDesc + (exPrompts ? '\n- Reference prompts: ' + exPrompts : '') + '\n\nYour job: evaluate the student attempt in 3-4 sentences. Mention what they did well, suggest one improvement if needed. End with VERDICT: PASS if the attempt shows genuine effort, or VERDICT: RETRY if they need to try again.';
+
+  const userMsg = isAr
+    ? 'محاولتي:\n\n' + attempt
+    : 'My attempt:\n\n' + attempt;
+
+  const p      = appSettings.provider || 'claude';
+  const apiKey = (state.apiKeys && state.apiKeys[p]) || (p === 'claude' ? (state.apiKey || '') : '') || '';
+
+  // Temporarily swap chat history so the API callers use only this message
+  const savedHistory  = state.chatHistory;
+  state.chatHistory   = [{ role: 'user', content: userMsg }];
+
+  try {
+    let reply;
+    if (p === 'openai')      reply = await callOpenAI(apiKey, sysPrompt);
+    else if (p === 'gemini') reply = await callGemini(apiKey, sysPrompt);
+    else                     reply = await callClaude(apiKey, sysPrompt);
+
+    state.chatHistory = savedHistory;
+
+    // Parse verdict
+    const passed     = /VERDICT:\s*PASS/i.test(reply);
+    const cleanReply = reply.replace(/\n*VERDICT:\s*(PASS|RETRY)[^\n]*/gi, '').trim();
+
+    // Remove thinking bubble and show feedback
+    document.getElementById('ex-think-' + stepId)?.remove();
+    if (histDiv) {
+      const fbDiv = document.createElement('div');
+      fbDiv.className = 'ex-msg ex-msg-ai';
+      fbDiv.innerHTML = cleanReply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+      const badge = document.createElement('div');
+      badge.className = 'verdict-badge ' + (passed ? 'verdict-pass' : 'verdict-retry');
+      badge.textContent = passed
+        ? (isAr ? '✓ أحسنت — مكتملة' : '✓ Well done — Step unlocked')
+        : (isAr ? '↻ جرب مرة أخرى' : '↻ Try again');
+      fbDiv.appendChild(badge);
+      histDiv.appendChild(fbDiv);
+      histDiv.scrollTop = histDiv.scrollHeight;
+    }
+
+    if (passed) {
+      markComplete(stepId);
+    } else {
+      if (input)  { input.disabled = false; input.value = ''; input.focus(); }
+      if (subBtn) subBtn.disabled = false;
+    }
+
+  } catch (err) {
+    state.chatHistory = savedHistory;
+    document.getElementById('ex-think-' + stepId)?.remove();
+    if (histDiv) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'ex-msg ex-msg-ai';
+      errDiv.innerHTML = getApiErrorMsg(err, state.lang);
+      histDiv.appendChild(errDiv);
+      histDiv.scrollTop = histDiv.scrollHeight;
+    }
+    if (input)  input.disabled  = false;
+    if (subBtn) subBtn.disabled = false;
   }
 }
 window.submitExercise = submitExercise;
+
+/* ── Onboarding Tour ─────────────────────────── */
+(function() {
+  var TOUR_KEY = 'ai_mastery_toured';
+
+  var STEPS_EN = [
+    { target:'settings-btn',  title:'Settings',
+      body:'Tap here to open Settings \u2014 choose your AI provider, font size, and theme.',
+      action: function(){ var sp=document.getElementById('settings-panel'); if(sp&&!sp.classList.contains('open')) toggleSettings(); } },
+    { target:'settings-panel', title:'Choose your AI Provider',
+      body:'Pick Claude, ChatGPT, or Gemini. Each needs its own API key \u2014 free tiers available!',
+      action: null },
+    { target:'chat-toggle', title:'AI Assistant',
+      body:'Click to open the chat panel. Your AI answers questions about any lesson you\u2019re viewing.',
+      action: function(){ var sp=document.getElementById('settings-panel'); if(sp&&sp.classList.contains('open')) toggleSettings(); } },
+    { target:'progress-fill', title:'Your Progress',
+      body:'This bar fills as you complete steps. See your percentage and phase milestones below it.',
+      action: null },
+    { target:'main-nav', title:'Course Navigation',
+      body:'Browse all 5 phases and steps here. Click any step to jump to it. Good luck! \ud83d\ude80',
+      action: null }
+  ];
+
+  var STEPS_AR = [
+    { target:'settings-btn',  title:'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a',
+      body:'\u0627\u0636\u063a\u0637 \u0647\u0646\u0627 \u0644\u0641\u062a\u062d \u0644\u0648\u062d\u0629 \u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a.',
+      action: function(){ var sp=document.getElementById('settings-panel'); if(sp&&!sp.classList.contains('open')) toggleSettings(); } },
+    { target:'settings-panel', title:'\u0627\u062e\u062a\u0631 \u0645\u0632\u0648\u062f \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064a',
+      body:'\u0627\u062e\u062a\u0631 Claude \u0623\u0648 ChatGPT \u0623\u0648 Gemini.',
+      action: null },
+    { target:'chat-toggle', title:'\u0627\u0644\u0645\u0633\u0627\u0639\u062f \u0627\u0644\u0630\u0643\u064a',
+      body:'\u0627\u0636\u063a\u0637 \u0647\u0646\u0627 \u0644\u0641\u062a\u062d \u0644\u0648\u062d\u0629 \u0627\u0644\u062f\u0631\u062f\u0634\u0629.',
+      action: function(){ var sp=document.getElementById('settings-panel'); if(sp&&sp.classList.contains('open')) toggleSettings(); } },
+    { target:'progress-fill', title:'\u062a\u0642\u062f\u0651\u0645\u0643',
+      body:'\u064a\u0645\u062a\u0644\u0626 \u0647\u0630\u0627 \u0627\u0644\u0634\u0631\u064a\u0637 \u0643\u0644\u0645\u0627 \u0623\u0643\u0645\u0644\u062a \u062e\u0637\u0648\u0629.',
+      action: null },
+    { target:'main-nav', title:'\u0627\u0644\u062a\u0646\u0642\u0644 \u0641\u064a \u0627\u0644\u0643\u0648\u0631\u0633',
+      body:'\u062a\u0635\u0641\u0651\u062d \u0627\u0644\u0645\u0631\u0627\u062d\u0644 \u0648\u062e\u0637\u0648\u0627\u062a\u0647\u0627 \u0645\u0646 \u0647\u0646\u0627. \u062d\u0638\u064b\u0627 \u0645\u0648\u0641\u0642\u064b\u0627!',
+      action: null }
+  ];
+
+  var tourStep = 0;
+  var highlightEl = null;
+  var tooltipEl   = null;
+
+  function getSteps() {
+    try { return (typeof state!=='undefined'&&state.lang==='ar') ? STEPS_AR : STEPS_EN; }
+    catch(e){ return STEPS_EN; }
+  }
+
+  function placeTooltip(rect) {
+    var TW=268, margin=12;
+    var vw=window.innerWidth, vh=window.innerHeight;
+    var top, left;
+    if (rect.top + rect.height + 180 + margin < vh) {
+      top = rect.top + rect.height + margin;
+    } else {
+      top = rect.top - 180 - margin;
+    }
+    left = rect.left + rect.width/2 - TW/2;
+    left = Math.max(margin, Math.min(left, vw-TW-margin));
+    top  = Math.max(margin, top);
+    tooltipEl.style.top  = top  + 'px';
+    tooltipEl.style.left = left + 'px';
+  }
+
+  function showStep(idx) {
+    var steps = getSteps();
+    if (idx >= steps.length) { endTour(); return; }
+    var step = steps[idx];
+    var targetEl = document.getElementById(step.target);
+    if (!targetEl) { showStep(idx+1); return; }
+    if (step.action) step.action();
+    setTimeout(function() {
+      var r = targetEl.getBoundingClientRect();
+      var pad = 6;
+      var pr = { top:r.top-pad, left:r.left-pad, width:r.width+pad*2, height:r.height+pad*2 };
+      if (!highlightEl) {
+        highlightEl = document.createElement('div');
+        highlightEl.className = 'tour-highlight';
+        document.body.appendChild(highlightEl);
+      }
+      highlightEl.style.top    = pr.top    + 'px';
+      highlightEl.style.left   = pr.left   + 'px';
+      highlightEl.style.width  = pr.width  + 'px';
+      highlightEl.style.height = pr.height + 'px';
+      if (!tooltipEl) {
+        tooltipEl = document.createElement('div');
+        tooltipEl.className = 'tour-tooltip';
+        document.body.appendChild(tooltipEl);
+      }
+      var isLast = (idx === steps.length-1);
+      var isAr   = (typeof state!=='undefined'&&state.lang==='ar');
+      var dotsHtml = steps.map(function(_,i){ return '<div class="tour-dot'+(i===idx?' active':'')+'"></div>'; }).join('');
+      tooltipEl.innerHTML =
+        '<div class="tour-tooltip-title">'+step.title+'</div>'+
+        '<div class="tour-tooltip-body">'+step.body+'</div>'+
+        '<div class="tour-tooltip-footer">'+
+          '<div class="tour-dots">'+dotsHtml+'</div>'+
+          '<div class="tour-btn-row">'+
+            '<button class="tour-skip-btn" onclick="window._tourSkip()">'+( isAr?'\u062a\u062e\u0637\u0651':'Skip')+'</button>'+
+            '<button class="tour-next-btn" onclick="window._tourNext()">'+
+              (isLast?(isAr?'\u0627\u0628\u062f\u0623! \ud83d\ude80':'Start! \ud83d\ude80'):(isAr?'\u0627\u0644\u062a\u0627\u0644\u064a \u203a':'Next \u203a'))+
+            '</button>'+
+          '</div>'+
+        '</div>';
+      placeTooltip(pr);
+    }, step.action ? 300 : 0);
+  }
+
+  function endTour() {
+    if (highlightEl) { highlightEl.remove(); highlightEl=null; }
+    if (tooltipEl)   { tooltipEl.remove();   tooltipEl=null; }
+    try { var sp=document.getElementById('settings-panel'); if(sp&&sp.classList.contains('open')) toggleSettings(); } catch(e){}
+    try { localStorage.setItem(TOUR_KEY,'1'); } catch(e){}
+  }
+
+  window._tourNext = function() {
+    tourStep++;
+    if(tooltipEl){ tooltipEl.remove(); tooltipEl=null; }
+    showStep(tourStep);
+  };
+  window._tourSkip = endTour;
+
+  window._startOnboardingTour = function() {
+    try { if(localStorage.getItem(TOUR_KEY)) return; } catch(e){}
+    tourStep = 0;
+    setTimeout(function(){ showStep(0); }, 900);
+  };
+})();
 </script>
 
 
