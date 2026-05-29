@@ -2792,6 +2792,37 @@ window.submitExercise = submitExercise;
     setTimeout(function(){ showStep(0); }, 900);
   };
 })();
+
+/* ── Mobile sidebar toggle ──────────────────────── */
+function toggleMobileSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('mobile-overlay');
+  if (!sidebar) return;
+  var isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('visible');
+  } else {
+    sidebar.classList.add('open');
+    if (overlay) overlay.classList.add('visible');
+    // Close chat if open
+    var chatPanel = document.getElementById('chat-panel');
+    if (chatPanel && chatPanel.classList.contains('mobile-open')) {
+      chatPanel.classList.remove('mobile-open');
+    }
+  }
+}
+
+function closeMobileSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('mobile-overlay');
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('visible');
+}
+
+window.toggleMobileSidebar = toggleMobileSidebar;
+window.closeMobileSidebar  = closeMobileSidebar;
+
 </script>
 
 
