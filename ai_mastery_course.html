@@ -1453,6 +1453,51 @@ nav { flex: 1; padding: 8px 0 12px; overflow-y: auto; }
 }
 .tour-next-btn:hover { opacity: 0.88; }
 
+
+/* ── Mobile hamburger + overlay ─────────────────── */
+.hamburger-btn {
+  display: none;
+  background: none; border: none;
+  font-size: 22px; cursor: pointer;
+  color: var(--text-primary);
+  padding: 4px 8px; border-radius: 6px;
+  line-height: 1;
+}
+.hamburger-btn:hover { background: var(--hover-bg, rgba(0,0,0,0.08)); }
+
+#mobile-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 199;
+  cursor: pointer;
+}
+#mobile-overlay.visible { display: block; }
+
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; align-items: center; }
+
+  /* Hide back/home buttons on very small screens to save space */
+  @media (max-width: 400px) {
+    #back-btn { display: none; }
+  }
+
+  /* Topbar: tighter on mobile */
+  .topbar-sub { display: none; }
+
+  /* Chat panel: full width on mobile */
+  .chat-panel {
+    width: 100vw !important;
+    min-width: 0 !important;
+  }
+
+  /* Keep sidebar narrower on small phones */
+  .sidebar { width: min(260px, 85vw); }
+
+  /* Onboarding tour: hide on mobile (handled in JS too) */
+  .tour-highlight, .tour-tooltip { display: none !important; }
+}
+
 </style>
 
 </style>
@@ -1547,6 +1592,7 @@ nav { flex: 1; padding: 8px 0 12px; overflow-y: auto; }
     <!-- Topbar -->
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:8px;">
+        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileSidebar()" aria-label="Open navigation menu">&#9776;</button>
         <button class="nav-btn" id="back-btn" onclick="goBack()" disabled title="Go back" aria-label="Go back">&#8592; Back</button>
         <button class="nav-btn" onclick="goHome()" title="Course home" aria-label="Go to home">&#8962; Home</button>
         <div class="topbar-title" id="topbar-title">Welcome</div>
@@ -6920,6 +6966,7 @@ function _updateBackBtn() {
 
 function navigateTo(pageId) {
   if (!pageId) return;
+  if (window.innerWidth <= 768 && typeof closeMobileSidebar === "function") closeMobileSidebar();
   if (!_navigatingBack) {
     // Don't push duplicates consecutively
     if (_navHistory[_navHistory.length - 1] !== pageId) {
@@ -7280,6 +7327,8 @@ function toggleChat() {
 
   if (window.innerWidth < 768) {
     chatPanel.classList.toggle('mobile-open');
+    // Close sidebar if open
+    if (chatPanel.classList.contains('mobile-open')) closeMobileSidebar();
   } else {
     chatPanel.classList.toggle('hidden');
     chatToggle.classList.toggle('active');
@@ -7798,6 +7847,7 @@ window.submitExercise = submitExercise;
   window._tourSkip = endTour;
 
   window._startOnboardingTour = function() {
+    if (window.innerWidth <= 768) return; // skip on mobile
     try { if(localStorage.getItem(TOUR_KEY)) return; } catch(e){}
     tourStep = 0;
     setTimeout(function(){ showStep(0); }, 900);
@@ -7806,5 +7856,8 @@ window.submitExercise = submitExercise;
 </script>
 
 
+
+  <!-- Mobile sidebar overlay -->
+  <div id="mobile-overlay" onclick="closeMobileSidebar()" aria-hidden="true"></div>
 </body>
 </html>
